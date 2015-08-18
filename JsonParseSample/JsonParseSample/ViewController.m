@@ -33,7 +33,6 @@
     static NSString *CellIdentifier = @"Cell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     cell.textLabel.text = self.titleArray[indexPath.row];
-    NSLog(@"cell.textLabel.text:%@",cell.textLabel.text);
     return cell;
 }
 
