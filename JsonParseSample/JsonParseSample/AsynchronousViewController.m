@@ -9,10 +9,13 @@
 #import "AsynchronousViewController.h"
 #import <AVFoundation/AVFoundation.h>
 
-@interface AsynchronousViewController () <AVCaptureMetadataOutputObjectsDelegate>
+@interface AsynchronousViewController () <AVCaptureMetadataOutputObjectsDelegate, UITableViewDataSource, UITableViewDelegate, UIAlertViewDelegate>
 @property (strong, nonatomic) AVCaptureSession* session;
 @property (strong, nonatomic) AVCaptureVideoPreviewLayer *preview;
 @property (nonatomic) BOOL didDetected;
+@property (strong, nonatomic) NSMutableArray *dataArray;
+@property (strong, nonatomic) UIAlertView *alert;
+//@property (strong, nonatomic) UITableView *alertTableView;
 @end
 
 @implementation AsynchronousViewController
@@ -21,6 +24,7 @@
     [super viewDidLoad];
     
     self.didDetected = NO;
+
 }
 
 - (void)didReceiveMemoryWarning {
@@ -34,6 +38,71 @@
 
 - (IBAction)stopButton:(id)sender {
     [self stopCaptureSession];
+}
+
+- (IBAction)buttonTap:(id)sender {
+    
+    self.dataArray = [NSMutableArray arrayWithArray:@[@"A",@"B",@"C",@"A",@"B",@"C",@"A",@"B",@"C",@"A",@"B",@"C",@"A",@"B",@"C"]];
+    [self createAlertTableView];
+}
+
+- (IBAction)button2Tap:(id)sender {
+    
+    self.dataArray = [NSMutableArray arrayWithArray:@[@"1",@"2",@"3"]];
+    [self createAlertTableView];
+}
+
+- (IBAction)button3Tap:(id)sender {
+    
+    self.dataArray = [NSMutableArray arrayWithArray:@[@"あ",@"い",@"う",@"え",@"お"]];
+    [self createAlertTableView];
+}
+
+- (UITableView *)createContainerView {
+
+    UITableView *alertTableView  = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, 272, 250)];
+    
+    alertTableView.delegate = self;
+    alertTableView.dataSource = self;
+    alertTableView.tableFooterView = [[UIView alloc]initWithFrame:CGRectZero];
+    [alertTableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+    [alertTableView setUserInteractionEnabled:YES];
+    [alertTableView setAllowsSelection:YES];
+    
+    return alertTableView;
+}
+
+- (void)createAlertTableView {
+    
+    if ([UIAlertController class]) {
+    
+        UIViewController *controller = [[UIViewController alloc]init];
+        
+        UITableView *alertTableView = [self createContainerView];
+        
+        [controller setPreferredContentSize:alertTableView.bounds.size];
+        [controller.view addSubview:alertTableView];
+        [controller.view bringSubviewToFront:alertTableView];
+        [controller.view setUserInteractionEnabled:YES];
+        
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Title" message:@"Message" preferredStyle:UIAlertControllerStyleAlert];
+        [alertController setValue:controller forKey:@"contentViewController"];
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+            
+        }];
+        [alertController addAction:cancelAction];
+        [self presentViewController:alertController animated:YES completion:nil];
+        
+    }else {
+    
+        self.alert = [[UIAlertView alloc] initWithTitle:@"TEST" message:@"subview" delegate:nil cancelButtonTitle:@"Close" otherButtonTitles:nil, nil];
+        self.alert.delegate = self;
+        UITableView *alertTableView = [self createContainerView];
+        
+        [self.alert setValue:alertTableView forKey:@"accessoryView"];
+        [self.alert show];
+    }
+    
 }
 
 - (void)startCaptureSession{
@@ -161,6 +230,56 @@
             }
         }
     }
+}
+
+#pragma mark - UITableViewDataSource
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.dataArray.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+
+    static NSString *CellIdentifier = @"Cell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+    }
+    
+    cell.textLabel.text = self.dataArray[indexPath.row];
+    return cell;
+}
+
+
+#pragma mark - UITableViewDelegate
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 44;
+}
+
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    NSLog(@"select:%@",self.dataArray[indexPath.row]);
+    
+    if ([UIAlertController class]) {
+    
+        [self dismissViewControllerAnimated:YES completion:nil];
+
+    }else {
+        
+        if (self.alert) {
+            [self.alert dismissWithClickedButtonIndex:-1 animated:YES];
+        }
+    }
+}
+
+#pragma mark - UIAlertViewDelegate
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+
 }
 
 @end
